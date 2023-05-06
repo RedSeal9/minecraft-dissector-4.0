@@ -11,35 +11,18 @@ on:
       - master
 
 jobs:
-  build-linux:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: true
-      - run: sudo add-apt-repository ppa:wireshark-dev/stable
-      - run: sudo apt-get install make gcc pkg-config wireshark-dev
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 14
-      - run: make packet-minecraft.so
-      - uses: actions/upload-artifact@v2
-        with:
-          name: linux
-          path: packet-minecraft.so
-
   build-windows:
     runs-on: windows-latest
     env:
       PLATFORM: x64
-      WIRESHARK_LIB_DIR: C:/wireshark-win64-libs-3.4
+      WIRESHARK_LIB_DIR: C:/wireshark-win64-libs-4.0
       GLIB_INCLUDE: vcpkg-export-20190318-win64ws/installed/x64-windows/include
     steps:
       - name: Checkout Wireshark
         uses: actions/checkout@v2
         with:
           repository: wireshark/wireshark
-          ref: wireshark-3.4.2
+          ref: wireshark-4.0.1
           path: wireshark
       - name: Choco install Wireshark Deps
         run: choco install -y --no-progress cmake winflexbison3 strawberryperl asciidoctorj xsltproc docbook-bundle
@@ -74,14 +57,10 @@ jobs:
           path: dissector/packet-minecraft.dll
 
   publish:
-    needs: [build-linux, build-windows]
+    needs: [build-windows]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
-      - name: Download linux artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: linux
       - name: Download windows artifact
         uses: actions/download-artifact@v2
         with:
